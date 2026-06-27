@@ -7,7 +7,7 @@ Purpose: Test SQLite database functions and attachment storage.
 # IMPORTS
 from pathlib import Path
 
-from database import (
+from MobilePartsDB_v1.app.backend.database import (
     initialize_database,
     create_entry,
     add_attachment_to_entry,

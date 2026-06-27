@@ -10,8 +10,7 @@ import sqlite3
 from datetime import datetime
 from pathlib import Path
 
-from config import DATABASE_DIR, DATABASE_FILE, PHOTOS_DIR, STATUS_NEEDS_INFO
-
+from app.backend.config import DATABASE_DIR, DATABASE_FILE, PHOTOS_DIR, STATUS_NEEDS_INFO
 
 # CONSTANTS
 FILE_EXTENSION_DEFAULT = ".jpg"

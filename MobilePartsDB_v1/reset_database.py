@@ -5,8 +5,8 @@ Purpose: Reset the MobilePartsDB test database during development.
 """
 
 # IMPORTS
-from config import DATABASE_FILE
-from database import initialize_database
+from MobilePartsDB_v1.app.backend.config import DATABASE_FILE
+from MobilePartsDB_v1.app.backend.database import initialize_database
 
 # FUNCTIONS
 def reset_database():
