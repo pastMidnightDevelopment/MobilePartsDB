@@ -1,23 +1,47 @@
+# ==========================================
+# MobilePartsDB .gitignore
+# ==========================================
+
 # Python
 __pycache__/
 *.py[cod]
 *$py.class
 
-# SQLite Database
-Database/*.db
+# Virtual environments
+.venv/
+venv/
+env/
 
-# Logs
-*.log
-
-# VS Code
+# IDE settings
 .vscode/
+.idea/
 
-# Build folders
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python test/cache
+.pytest_cache/
+.mypy_cache/
+
+# Build output
 build/
 dist/
+*.egg-info/
 
-# macOS
-.DS_Store
+# Runtime logs
+*.log
 
-# Windows
-Thumbs.db
+# Database (local test data)
+MobilePartsDB_v1/Database/
+*.db
+*.sqlite
+*.sqlite3
+
+# User photos / attachments
+MobilePartsDB_v1/Photos/
+MobilePartsDB_v1/TestAttachments/
+
+# Temporary backups
+*.bak
+*.tmp

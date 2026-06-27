@@ -12,6 +12,8 @@ from kivy.uix.filechooser import FileChooserListView
 from kivy.uix.label import Label
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.uix.textinput import TextInput
+from pathlib import Path
+import sqlite3
 
 from database import (
     initialize_database,
@@ -27,7 +29,10 @@ from database import (
 SCREEN_HOME = "home"
 SCREEN_NEW_ENTRY = "new_entry"
 SCREEN_ENTRIES = "entries"
-
+BASE_DIR = Path(__file__).resolve().parent
+DATABASE_DIR = BASE_DIR / "Database"
+PHOTOS_DIR = BASE_DIR / "Photos"
+DATABASE_FILE = DATABASE_DIR / "parts.db"
 
 # FUNCTIONS
 class HomeScreen(Screen):
@@ -187,4 +192,5 @@ class MobilePartsDBApp(App):
 
 # PROGRAM START
 if __name__ == "__main__":
+    setup_first_launch()
     MobilePartsDBApp().run()
