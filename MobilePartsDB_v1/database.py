@@ -1,7 +1,7 @@
 """
 File: database.py
-Version: 0.2.1
-Purpose: SQLite database functions for MobilePartsDB.
+Version: 0.3.0
+Purpose: SQLite database and attachment functions for MobilePartsDB.
 """
 
 # IMPORTS
@@ -14,7 +14,13 @@ from config import DATABASE_DIR, DATABASE_FILE, PHOTOS_DIR, STATUS_NEEDS_INFO
 
 
 # CONSTANTS
-PHOTO_EXTENSION_DEFAULT = ".jpg"
+FILE_EXTENSION_DEFAULT = ".jpg"
+
+FILE_TYPE_IMAGE = "image"
+FILE_TYPE_VIDEO = "video"
+FILE_TYPE_AUDIO = "audio"
+FILE_TYPE_PDF = "pdf"
+FILE_TYPE_DOCUMENT = "document"
 
 
 # DATABASE
@@ -35,10 +41,11 @@ def initialize_database():
         """)
 
         cursor.execute("""
-            CREATE TABLE IF NOT EXISTS photos (
+            CREATE TABLE IF NOT EXISTS attachments (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 entry_id INTEGER NOT NULL,
-                photo_path TEXT NOT NULL,
+                file_path TEXT NOT NULL,
+                file_type TEXT NOT NULL,
                 created_at TEXT NOT NULL,
                 FOREIGN KEY (entry_id) REFERENCES entries (id)
             )
@@ -66,67 +73,96 @@ def create_entry(quick_name):
         """, (created_at, cleaned_name, STATUS_NEEDS_INFO))
 
         connection.commit()
-
         entry_id = cursor.lastrowid
 
-    create_entry_photo_folder(entry_id)
+    create_entry_attachment_folder(entry_id)
 
     return entry_id
 
 
-def create_entry_photo_folder(entry_id):
+def create_entry_attachment_folder(entry_id):
     assert isinstance(entry_id, int)
 
-    entry_photo_folder = PHOTOS_DIR / str(entry_id)
-    entry_photo_folder.mkdir(parents=True, exist_ok=True)
+    entry_attachment_folder = PHOTOS_DIR / str(entry_id)
+    entry_attachment_folder.mkdir(parents=True, exist_ok=True)
 
-    return entry_photo_folder
+    return entry_attachment_folder
 
 
-def get_next_photo_number(entry_id):
+def get_attachments_for_entry(entry_id):
     assert isinstance(entry_id, int)
 
-    photos = get_photos_for_entry(entry_id)
+    with sqlite3.connect(DATABASE_FILE) as connection:
+        cursor = connection.cursor()
 
-    return len(photos) + 1
+        cursor.execute("""
+            SELECT id, file_path, file_type, created_at
+            FROM attachments
+            WHERE entry_id = ?
+            ORDER BY id ASC
+        """, (entry_id,))
+
+        return cursor.fetchall()
 
 
-def build_photo_file_path(entry_id, photo_number, file_extension=PHOTO_EXTENSION_DEFAULT):
+def get_next_attachment_number(entry_id):
     assert isinstance(entry_id, int)
-    assert isinstance(photo_number, int)
+
+    attachments = get_attachments_for_entry(entry_id)
+
+    return len(attachments) + 1
+
+
+def build_attachment_file_path(
+    entry_id,
+    attachment_number,
+    file_extension=FILE_EXTENSION_DEFAULT
+):
+    assert isinstance(entry_id, int)
+    assert isinstance(attachment_number, int)
     assert isinstance(file_extension, str)
 
-    entry_photo_folder = create_entry_photo_folder(entry_id)
+    create_entry_attachment_folder(entry_id)
+
     clean_extension = file_extension.lower().strip()
 
     if clean_extension == "":
-        clean_extension = PHOTO_EXTENSION_DEFAULT
+        clean_extension = FILE_EXTENSION_DEFAULT
 
     if not clean_extension.startswith("."):
         clean_extension = f".{clean_extension}"
 
-    file_name = f"{photo_number:03d}{clean_extension}"
+    file_name = f"{attachment_number:03d}{clean_extension}"
 
-    return entry_photo_folder / file_name
+    relative_file_path = Path(str(entry_id)) / file_name
+    full_file_path = PHOTOS_DIR / relative_file_path
+
+    return relative_file_path, full_file_path
 
 
-def add_photo_to_entry(entry_id, source_photo_path):
+def add_attachment_to_entry(
+    entry_id,
+    source_file_path,
+    file_type=FILE_TYPE_IMAGE
+):
     assert isinstance(entry_id, int)
-    assert isinstance(source_photo_path, str)
+    assert isinstance(source_file_path, str)
+    assert isinstance(file_type, str)
 
-    source_path = Path(source_photo_path)
+    source_file = Path(source_file_path)
 
-    if not source_path.exists():
-        raise FileNotFoundError(f"Photo file not found: {source_photo_path}")
+    if not source_file.exists():
+        raise FileNotFoundError(f"Attachment file not found: {source_file_path}")
 
-    photo_number = get_next_photo_number(entry_id)
-    destination_path = build_photo_file_path(
+    attachment_number = get_next_attachment_number(entry_id)
+
+    relative_file_path, full_file_path = build_attachment_file_path(
         entry_id,
-        photo_number,
-        source_path.suffix
+        attachment_number,
+        source_file.suffix
     )
 
-    shutil.copy2(source_path, destination_path)
+    shutil.copy2(source_file, full_file_path)
 
     created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -134,29 +170,19 @@ def add_photo_to_entry(entry_id, source_photo_path):
         cursor = connection.cursor()
 
         cursor.execute("""
-            INSERT INTO photos (entry_id, photo_path, created_at)
-            VALUES (?, ?, ?)
-        """, (entry_id, str(destination_path), created_at))
+            INSERT INTO attachments (entry_id, file_path, file_type, created_at)
+            VALUES (?, ?, ?, ?)
+        """, (entry_id, str(relative_file_path), file_type, created_at))
 
         connection.commit()
 
-    return destination_path
+    return full_file_path
 
 
-def get_photos_for_entry(entry_id):
-    assert isinstance(entry_id, int)
+def get_full_attachment_path(relative_file_path):
+    assert isinstance(relative_file_path, str)
 
-    with sqlite3.connect(DATABASE_FILE) as connection:
-        cursor = connection.cursor()
-
-        cursor.execute("""
-            SELECT id, photo_path, created_at
-            FROM photos
-            WHERE entry_id = ?
-            ORDER BY id ASC
-        """, (entry_id,))
-
-        return cursor.fetchall()
+    return PHOTOS_DIR / relative_file_path
 
 
 def get_all_entries():
