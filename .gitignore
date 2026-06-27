@@ -1,7 +1,3 @@
-# ==========================================
-# MobilePartsDB .gitignore
-# ==========================================
-
 # Python
 __pycache__/
 *.py[cod]
@@ -20,7 +16,7 @@ env/
 .DS_Store
 Thumbs.db
 
-# Python test/cache
+# Test/cache
 .pytest_cache/
 .mypy_cache/
 
@@ -32,15 +28,15 @@ dist/
 # Runtime logs
 *.log
 
-# Database (local test data)
+# Local runtime data
 MobilePartsDB_v1/Database/
+MobilePartsDB_v1/Photos/
+MobilePartsDB_v1/TestAttachments/
+
+# SQLite databases
 *.db
 *.sqlite
 *.sqlite3
-
-# User photos / attachments
-MobilePartsDB_v1/Photos/
-MobilePartsDB_v1/TestAttachments/
 
 # Temporary backups
 *.bak
