@@ -14,7 +14,19 @@ My goal is not simply to write code, it is to create software that remains under
 
 ---
 
-Development Motto
+## Guiding Principle
+
+Every project should be able to stand on its own.
+
+But...
+
+Every project should also be capable of becoming a module inside the Memory App someday.
+
+That means we're not designing MobilePartsDB as an isolated app. We're designing it as the Parts Module.
+
+---
+
+## Development Motto
 
 Build it. Test it. Improve it. Repeat.
 
